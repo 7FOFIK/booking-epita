@@ -12,13 +12,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout
 
       - name: Run OSV Scanner
-        uses: google/osv-scanner-action@v1
+        uses: google/osv-scanner-action/osv-scanned-action
 
       - name: Upload OSV scan report to Security Dashboard
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif
         with:
           sarif_file: results.sarif 
 
@@ -30,13 +30,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@
 
       - name: Run Semgrep analysis for Java
         run: semgrep --config p/java --sarif -o semgrep-report.sarif
 
       - name: Upload Semgrep report to Security Dashboard
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif
         with:
           sarif_file: semgrep-report.sarif
 
