@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@
+        uses: actions/checkout
 
       - name: Run Semgrep analysis for Java
         run: semgrep --config p/java --sarif -o semgrep-report.sarif
