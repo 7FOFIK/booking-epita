@@ -1,42 +1,51 @@
-name: Daily Security Pipeline
+name: Security Scan
 
 on:
   schedule:
-    - cron: '0 0 * * *'
-  workflow_dispatch:
+    - cron: '0 0 * * *' # Runs daily at 00:00 UTC
+  workflow_dispatch:     # Manual trigger
 
 jobs:
-  osv-scan:
-    name: OSV Scanner
+  DependenciesAnalysis:
+    permissions:
+      security-events: write
+    name: DependenciesAnalysis
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout
+        uses: actions/checkout@v4
 
       - name: Run OSV Scanner
-        uses: google/osv-scanner-action/osv-scanned-action
-
-      - name: Upload OSV scan report to Security Dashboard
-        uses: github/codeql-action/upload-sarif
+        uses: google/osv-scanner-action/osv-scanner-action@v2.0.2
         with:
-          sarif_file: results.sarif 
+          scan-args: |
+            --lockfile=app/gradle.lockfile
+            --format=sarif
+            --output=osv-results.sarif
+        continue-on-error: true
 
-  semgrep-scan:
-    name: Semgrep Analysis
+      - name: Upload SARIF report
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: osv-results.sarif
+
+  SourceCodeAnalysis:
+    permissions:
+      security-events: write
+    name: SourceCodeAnalysis
     runs-on: ubuntu-latest
     container:
       image: returntocorp/semgrep
 
     steps:
       - name: Checkout code
-        uses: actions/checkout
+        uses: actions/checkout@v4
 
-      - name: Run Semgrep analysis for Java
-        run: semgrep --config p/java --sarif -o semgrep-report.sarif
+      - name: Run Semgrep for Java
+        run: semgrep --config=p/java --sarif --output=semgrep.sarif
 
-      - name: Upload Semgrep report to Security Dashboard
-        uses: github/codeql-action/upload-sarif
+      - name: Upload SARIF report
+        uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: semgrep-report.sarif
-
+          sarif_file: semgrep.sarif
